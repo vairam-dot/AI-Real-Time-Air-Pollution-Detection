@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - AirPollutionAI</title>
+
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.css">
+    <!-- interactive feature styles (reuses existing CSS for consistency) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/interactive.css') }}">
+    <!-- Theme Switcher -->
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .login-card {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            padding: 2rem;
+            border-radius: 12px;
+            width: 320px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+        }
+        .login-card h2 {
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        .login-card .form-group {
+            margin-bottom: 1rem;
+        }
+        .login-card label {
+            display: block;
+            margin-bottom: 0.3rem;
+        }
+        .login-card input {
+            width: 100%;
+            padding: 0.5rem;
+            border: none;
+            border-radius: 6px;
+        }
+        .login-card button {
+            width: 100%;
+            padding: 0.6rem;
+            border: none;
+            border-radius: 6px;
+            background: #667eea;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .login-card button:hover {
+            background: #5a67d8;
+        }
+        .flashes {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 1rem;
+        }
+        .flashes li {
+            padding: 0.5rem;
+            border-radius: 4px;
+        }
+        .flashes .success { background: #48bb78; }
+        .flashes .danger { background: #f56565; }
+        .flashes .info { background: #63b3ed; }
+        .navbar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(0,0,0,0.2);
+            backdrop-filter: blur(6px);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+        }
+        .navbar .nav-links a {
+            color: white;
+            margin-left: 1rem;
+            text-decoration: none;
+        }
+        .navbar .nav-links:empty { display: none; } /* hide empty nav-links when there are no links (i.e. before login) */
+        /* dark mode overrides */
+        body.dark-mode {
+            background: #1a202c;
+            color: #e2e8f0;
+        }
+        body.dark-mode .login-card {
+            background: rgba(0,0,0,0.4);
+        }
+        body.light-mode .login-card {
+            background: rgba(255,255,255,0.15);
+        }
+        /* emphasize theme toggle button and position in navbar */
+        #themeToggle {
+            background: rgba(255,255,255,0.6);
+            color: #333;
+            border: 2px solid #fff;
+            box-shadow: 0 0 8px rgba(0,0,0,0.3);
+            z-index: 110;
+            position: relative !important;
+            top: auto !important;
+            right: auto !important;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        body.dark-mode #themeToggle {
+            background: rgba(0,0,0,0.6);
+            color: #fff;
+            border: 2px solid #fff;
+        }
+        /* ensure nav padding doesn't push toggle offscreen */
+        .navbar { padding-right: 2rem; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div style="display:flex; align-items:center; gap:15px;">
+            <div class="logo"><i class="fas fa-leaf"></i> AirPollutionAI</div>
+            <button id="themeToggle" class="theme-toggle-btn" title="Switch to Dark Mode">
+                <i id="themeIcon" class="fas fa-moon"></i>
+            </button>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('home') }}">Home</a>
+            {% if logged_in %}
+                <a href="{{ url_for('dashboard') }}">Dashboard</a>
+                <a href="{{ url_for('logout') }}">Logout</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <div class="login-card">
+        <h2>Sign in</h2>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="flashes">
+                {% for category,msg in messages %}
+                    <li class="{{category}}">{{ msg }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+        <form method="post" action="{{ url_for('login') }}">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required autofocus>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit">Login</button>
+            <div style="text-align:center; margin-top:0.5rem;">
+                <a href="#" style="color:#e2e8f0; font-size:0.9rem;">Forgot password?</a>
+            </div>
+        </form>
+        <div style="text-align:center; margin-top:1rem; padding-top:1rem; border-top:1px solid rgba(255,255,255,0.2);">
+            <p style="font-size:0.9rem;">Don't have an account?</p>
+            <a href="{{ url_for('signup') }}" style="color:#ffd700; font-size:1rem; font-weight:500;">Create Account</a>
+        </div>
+    </div>
+</body>
+</html>

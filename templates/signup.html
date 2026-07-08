@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - AirPollutionAI</title>
+
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.css">
+    <!-- Theme Switcher -->
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .signup-card {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            padding: 2rem;
+            border-radius: 12px;
+            width: 380px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+        }
+        
+        .signup-card h2 {
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        
+        .signup-card .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .signup-card label {
+            display: block;
+            margin-bottom: 0.3rem;
+            font-weight: 500;
+        }
+        
+        .signup-card input {
+            width: 100%;
+            padding: 0.7rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+        
+        .signup-card button {
+            width: 100%;
+            padding: 0.8rem;
+            border: none;
+            border-radius: 6px;
+            background: #667eea;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-weight: 500;
+        }
+        
+        .signup-card button:hover {
+            background: #5a67d8;
+        }
+        
+        .signup-card button:disabled {
+            background: #888;
+            cursor: not-allowed;
+        }
+        
+        .signup-card .otp-section {
+            display: none;
+        }
+        
+        .signup-card .otp-section.active {
+            display: block;
+        }
+        
+        .signup-card .register-section {
+            display: block;
+        }
+        
+        .signup-card .register-section.hidden {
+            display: none;
+        }
+        
+        .otp-input-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .otp-input {
+            width: 50px !important;
+            text-align: center;
+            font-size: 1.5rem !important;
+            letter-spacing: 5px;
+        }
+        
+        .timer {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #ddd;
+        }
+        
+        .resend-link {
+            text-align: center;
+            margin-top: 10px;
+        }
+        
+        .resend-link a {
+            color: #ffd700;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        
+        .resend-link a:hover {
+            color: #fff;
+        }
+        
+        .flashes {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 1rem;
+        }
+        
+        .flashes li {
+            padding: 0.5rem;
+            border-radius: 4px;
+            text-align: center;
+        }
+        
+        .flashes .success { background: #48bb78; }
+        .flashes .danger { background: #f56565; }
+        .flashes .info { background: #63b3ed; }
+        
+        .navbar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(0,0,0,0.2);
+            backdrop-filter: blur(6px);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+        }
+        
+        .navbar .nav-links a {
+            color: white;
+            margin-left: 1rem;
+            text-decoration: none;
+        }
+        
+        .navbar .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        
+        /* Theme toggle button */
+        #themeToggle {
+            background: rgba(255,255,255,0.6);
+            color: #333;
+            border: 2px solid #fff;
+            box-shadow: 0 0 8px rgba(0,0,0,0.3);
+            z-index: 110;
+            position: relative !important;
+            top: auto !important;
+            right: auto !important;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        
+        body.dark-mode {
+            background: #1a202c;
+            color: #e2e8f0;
+        }
+        
+        body.dark-mode .signup-card {
+            background: rgba(0,0,0,0.4);
+        }
+        
+        body.dark-mode #themeToggle {
+            background: rgba(0,0,0,0.6);
+            color: #fff;
+            border: 2px solid #fff;
+        }
+        
+        .login-link {
+            text-align: center;
+            margin-top: 1rem;
+        }
+        
+        .login-link a {
+            color: #ffd700;
+            text-decoration: none;
+        }
+        
+        .login-link a:hover {
+            color: #fff;
+            text-decoration: underline;
+        }
+        
+        .info-text {
+            font-size: 0.85rem;
+            color: #ddd;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        
+        .back-btn {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.5);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            width: auto;
+        }
+        
+        .back-btn:hover {
+            background: rgba(255,255,255,0.2);
+            border-color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div style="display:flex; align-items:center; gap:15px;">
+            <div class="logo"><i class="fas fa-leaf"></i> AirPollutionAI</div>
+        </div>
+        <button id="themeToggle" title="Switch to Dark Mode">
+            <i id="themeIcon" class="fas fa-moon"></i>
+        </button>
+    </nav>
+
+    <div class="signup-card">
+        <h2>Create Account</h2>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="flashes">
+                {% for category,msg in messages %}
+                    <li class="{{category}}">{{ msg }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+        
+        <!-- Registration Form -->
+        <div id="registerSection" class="register-section">
+            <p class="info-text">Enter your details and verify with OTP to create account</p>
+            
+            <form method="post" action="{{ url_for('signup') }}" id="signupForm">
+                <div class="form-group">
+                    <label for="full_name">Full Name</label>
+                    <input type="text" id="full_name" name="full_name" required placeholder="Enter your full name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required placeholder="Choose a username">
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" required placeholder="Enter your email">
+                </div>
+                
+                <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone" name="phone" required placeholder="Enter phone number (e.g., +91 9876543210)">
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required placeholder="Create a password">
+                </div>
+                
+                <button type="submit">Send OTP</button>
+            </form>
+            
+            <div class="login-link">
+                Already have an account? <a href="{{ url_for('login') }}">Login here</a>
+            </div>
+        </div>
+        
+        <!-- OTP Verification Section -->
+        <div id="otpSection" class="otp-section">
+            <button type="button" class="back-btn" onclick="goBack()">
+                ← Back
+            </button>
+            
+            <p class="info-text">We sent an OTP to your email and phone. Enter the 6-digit code below.</p>
+            
+            <form id="otpForm">
+                <div class="form-group">
+                    <label for="otp">Enter OTP</label>
+                    <div class="otp-input-group">
+                        <input type="text" id="otp" name="otp" class="otp-input" maxlength="6" required placeholder="------" autocomplete="off">
+                    </div>
+                </div>
+                
+                <input type="hidden" id="reg_username" name="username" value="">
+                
+                <button type="submit" id="verifyBtn">Verify & Create Account</button>
+            </form>
+            
+            <div class="timer" id="timer">Resend OTP in <span id="countdown">60</span> seconds</div>
+            
+            <div class="resend-link" id="resendLink" style="display: none;">
+                <a onclick="resendOTP()">Resend OTP</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Go back to registration form
+        function goBack() {
+            document.getElementById('otpSection').classList.remove('active');
+            document.getElementById('registerSection').classList.remove('hidden');
+            // Clear the countdown
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+            }
+        }
+        
+        // Handle form submission for signup
+        const signupForm = document.getElementById('signupForm');
+        if (signupForm) {
+            signupForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(signupForm);
+                const data = {
+                    full_name: formData.get('full_name'),
+                    username: formData.get('username'),
+                    email: formData.get('email'),
+                    phone: formData.get('phone'),
+                    password: formData.get('password')
+                };
+                
+                try {
+                    const response = await fetch('/api/signup', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        // Show OTP section
+                        document.getElementById('registerSection').classList.add('hidden');
+                        document.getElementById('otpSection').classList.add('active');
+                        
+                        // Store username for verification
+                        document.getElementById('reg_username').value = data.username;
+                        
+                        // Show OTP in alert
+                        alert('Your OTP is: ' + result.otp + '\n\nPlease enter this code to verify your account.');
+                        
+                        // Start countdown timer
+                        startCountdown();
+                    } else {
+                        alert(result.message || 'Registration failed. Please try again.');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
+                }
+            });
+        }
+        
+        // Handle OTP verification
+        const otpForm = document.getElementById('otpForm');
+        if (otpForm) {
+            otpForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const otp = document.getElementById('otp').value;
+                const username = document.getElementById('reg_username').value;
+                
+                if (otp.length !== 6) {
+                    alert('Please enter a valid 6-digit OTP');
+                    return;
+                }
+                
+                try {
+                    const response = await fetch('/api/verify-otp', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ username: username, otp: otp })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        alert('Account created successfully! Please login.');
+                        window.location.href = '/login';
+                    } else {
+                        alert(result.message || 'Invalid OTP. Please try again.');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
+                }
+            });
+        }
+        
+        // Countdown timer for resend OTP
+        let countdownInterval;
+        
+        function startCountdown() {
+            let seconds = 60;
+            const countdownEl = document.getElementById('countdown');
+            const timerEl = document.getElementById('timer');
+            const resendLink = document.getElementById('resendLink');
+            
+            timerEl.style.display = 'block';
+            resendLink.style.display = 'none';
+            
+            countdownInterval = setInterval(function() {
+                seconds--;
+                countdownEl.textContent = seconds;
+                
+                if (seconds <= 0) {
+                    clearInterval(countdownInterval);
+                    timerEl.style.display = 'none';
+                    resendLink.style.display = 'block';
+                }
+            }, 1000);
+        }
+        
+        // Resend OTP function
+        async function resendOTP() {
+            const username = document.getElementById('reg_username').value;
+            
+            try {
+                const response = await fetch('/api/resend-otp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username: username })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Your new OTP is: ' + result.otp);
+                    startCountdown();
+                } else {
+                    alert(result.message || 'Failed to resend OTP.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            }
+        }
+        
+        // Auto-focus OTP input
+        const otpInput = document.getElementById('otp');
+        if (otpInput) {
+            otpInput.addEventListener('input', function(e) {
+                // Only allow numbers
+                this.value = this.value.replace(/[^0-9]/g, '');
+                
+                // Auto submit when 6 digits entered
+                if (this.value.length === 6) {
+                    document.getElementById('verifyBtn').click();
+                }
+            });
+        }
+    </script>
+</body>
+</html>

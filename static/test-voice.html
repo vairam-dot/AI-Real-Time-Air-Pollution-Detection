@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Command System Test</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #667eea;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 1rem;
+        }
+        .test-section {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            border-left: 4px solid #667eea;
+            background: #f9f9f9;
+        }
+        .test-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 0.5rem;
+            transition: all 0.3s;
+        }
+        .test-button:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
+        }
+        .status {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .voice-btn-demo {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: 2px solid rgba(255,255,255,0.3);
+            cursor: pointer;
+            font-size: 1.5rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            margin: 1rem 0;
+        }
+        .voice-btn-demo:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        .console-log {
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 1rem;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+        .command-list {
+            list-style: none;
+            padding: 0;
+        }
+        .command-list li {
+            padding: 0.5rem;
+            background: #e8eef7;
+            margin: 0.5rem 0;
+            border-radius: 3px;
+            border-left: 3px solid #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 Voice Command System Test</h1>
+        
+        <div class="test-section">
+            <h2>System Status</h2>
+            <div id="status" class="status info">Loading...</div>
+        </div>
+
+        <div class="test-section">
+            <h2>Quick Test</h2>
+            <p>Click the button below to test voice commands:</p>
+
+            <div id="testStatus"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>Manual Tests</h2>
+            <button class="test-button" onclick="runTest('button')">Test Button Click</button>
+            <button class="test-button" onclick="runTest('speech')">Test Speech Recognition API</button>
+            <button class="test-button" onclick="runTest('start')">Start Listening (Manual)</button>
+            <button class="test-button" onclick="runTest('stop')">Stop Listening</button>
+            <button class="test-button" onclick="runTest('theme')">Test Theme Switcher</button>
+        </div>
+
+        <div class="test-section">
+            <h2>Available Voice Commands</h2>
+            <ul class="command-list" id="commandsList">
+                <li>Loading commands...</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h2>Console Output</h2>
+            <div class="console-log" id="console"></div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/voice-commands.js') }}"></script>
+    <script>
+        // Override console.log to capture output
+        const originalLog = console.log;
+        const consoleElement = document.getElementById('console');
+        let logCount = 0;
+
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            const message = args.map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+            ).join(' ');
+            
+            const line = document.createElement('div');
+            line.textContent = message;
+            consoleElement.appendChild(line);
+            consoleElement.scrollTop = consoleElement.scrollHeight;
+            
+            logCount++;
+            if (logCount > 100) {
+                consoleElement.removeChild(consoleElement.firstChild);
+            }
+        };
+
+        // Wait for systems to initialize
+        setTimeout(() => {
+            updateStatus();
+            updateCommands();
+        }, 500);
+
+        function updateStatus() {
+            const statusEl = document.getElementById('status');
+            const checks = {
+                'Voice System': !!window.voiceCommandSystem,
+                'Theme System': !!window.themeSwitcher,
+                'Speech Recognition': window.voiceCommandSystem?.isSupported || false,
+                'Voice Button': !!document.getElementById('voiceCommandBtn'),
+            };
+
+            let html = '<strong>System Status:</strong><br>';
+            for (const [key, value] of Object.entries(checks)) {
+                const icon = value ? '✅' : '❌';
+                html += `${icon} ${key}<br>`;
+            }
+            statusEl.innerHTML = html;
+            statusEl.className = 'status ' + (Object.values(checks).every(v => v) ? 'success' : 'error');
+        }
+
+        function updateCommands() {
+            const listEl = document.getElementById('commandsList');
+            if (!window.voiceCommandSystem?.commandsList) {
+                listEl.innerHTML = '<li>Commands not loaded yet</li>';
+                return;
+            }
+
+            listEl.innerHTML = '';
+            window.voiceCommandSystem.commandsList.forEach((cmd, i) => {
+                const li = document.createElement('li');
+                li.innerHTML = `<strong>${cmd.description}</strong><br>Say: "<em>${cmd.keywords[0]}</em>"`;
+                listEl.appendChild(li);
+            });
+        }
+
+        function runTest(type) {
+            console.log(`\n📋 Running test: ${type}\n`);
+            
+            switch(type) {
+                case 'button':
+                    console.log('Simulating button click...');
+                    const btn = document.getElementById('voiceCommandBtn');
+                    if (btn) {
+                        btn.click();
+                        console.log('✅ Button clicked');
+                    } else {
+                        console.error('❌ Button not found');
+                    }
+                    break;
+
+                case 'speech':
+                    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                    if (SpeechRecognition) {
+                        console.log('✅ Speech Recognition API available');
+                        try {
+                            const recognition = new SpeechRecognition();
+                            console.log('✅ Recognition instance created');
+                        } catch(e) {
+                            console.error('❌ Error:', e.message);
+                        }
+                    } else {
+                        console.error('❌ Speech Recognition not supported');
+                    }
+                    break;
+
+                case 'start':
+                    if (window.voiceCommandSystem) {
+                        console.log('Starting voice recognition...');
+                        window.voiceCommandSystem.startListening();
+                    }
+                    break;
+
+                case 'stop':
+                    if (window.voiceCommandSystem) {
+                        console.log('Stopping voice recognition...');
+                        window.voiceCommandSystem.stopListening();
+                    }
+                    break;
+
+                case 'theme':
+                    if (window.themeSwitcher) {
+                        console.log('Testing theme switcher...');
+                        window.themeSwitcher.toggleTheme();
+                        console.log('✅ Theme toggled');
+                    }
+                    break;
+            }
+        }
+    </script>
+</body>
+</html>
